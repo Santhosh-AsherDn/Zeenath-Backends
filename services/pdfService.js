@@ -59,7 +59,7 @@ export const generateInvoice = (booking) => {
         doc
           .rect(50, y, 510, 20)
           .fillOpacity(0.1)
-          .fill("#e0e0e0")
+          .fill("#e0e0ef")
           .fillOpacity(1)
           .stroke();
 
