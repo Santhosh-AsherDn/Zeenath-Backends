@@ -1,0 +1,17 @@
+{
+  "name": "zeenath-backend",
+  "type": "module",
+  "scripts": {
+    "start": "node server.js"
+  },
+  "dependencies": {
+    "cors": "^2.8.5",
+    "dotenv": "^16.5.0",
+    "express": "^5.1.0",
+    "mongoose": "^8.13.2",
+    "nodemailer": "^6.10.0",
+    "nodemon": "^3.1.9",
+    "pdfkit": "^0.16.0",
+    "razorpay": "^2.9.6"
+  }
+}
