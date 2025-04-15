@@ -57,6 +57,26 @@ export const createOrder = async (req, res) => {
       });
     }
 
+    const availabilityResponse = await fetch('http://localhost:5000/api/rooms/availability', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        roomId: req.body.roomId,
+        checkInDate: req.body.checkInDate,
+        checkOutDate: req.body.checkOutDate
+      })
+    });
+
+    const availabilityData = await availabilityResponse.json();
+    
+    if (!availabilityResponse.ok || availabilityData.availableRooms < req.body.NoofRoom) {
+      return res.status(400).json({
+        success: false,
+        message: availabilityData.message || 'Not enough rooms available',
+        availableRooms: availabilityData.availableRooms
+      });
+    }
+
     // Create Razorpay order
     const options = {
       amount: req.body.amount, // Amount in paise

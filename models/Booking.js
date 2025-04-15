@@ -19,7 +19,11 @@ const bookingSchema = new mongoose.Schema(
     gstAmount: { type: Number, required: true },
     gstPercentage: { type: Number, required: true },
     total: { type: Number, required: true },
-    status: { type: String, default: "Pending" },
+    status: {
+      type: String,
+      default: "Pending",
+      enum: ["Pending", "Confirmed", "Cancelled"],
+    },
     razorpayOrderId: String,
     razorpayPaymentId: String,
     razorpaySignature: String,

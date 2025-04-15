@@ -84,7 +84,7 @@ export const generateInvoice = (booking) => {
         .fontSize(20)
         .font("Helvetica-Bold")
         .text("Zeenath Taj Garden", { align: "center" });
-      doc.fontSize(14).text("HOTEL INVOICE", { align: "center" }).moveDown();
+      doc.fontSize(14).text("INVOICE", { align: "center" }).moveDown();
 
       // ===== From & To Boxes =====
       const topY = doc.y;
