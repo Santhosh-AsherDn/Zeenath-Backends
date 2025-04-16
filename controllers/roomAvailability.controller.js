@@ -1,6 +1,6 @@
 // controllers/roomAvailability.controller.js
 import Booking from "../models/Booking.js";
-import Room from "../models/Room.js";
+// import Room from "../models/Room.js";
 
 export const checkRoomAvailability = async (req, res) => {
   try {
@@ -29,77 +29,54 @@ export const checkRoomAvailability = async (req, res) => {
       });
     }
 
-    // Try to find the room in the DB
-    let room = await Room.findOne({ id: parseInt(roomId) });
+    // Get room information from roomsData
+    const { rooms } = await import("../data/roomsData.js");
+    const roomData = rooms.find((r) => r.id === parseInt(roomId));
 
-    // If not found in DB, fall back to roomsData
-    if (!room) {
-      const { rooms } = await import("../data/roomsData.js");
-      const roomData = rooms.find((r) => r.id === parseInt(roomId));
-
-      if (!roomData) {
-        return res.status(404).json({
-          success: false,
-          message: `Room not found with ID: ${roomId}`,
-        });
-      }
-
-      // Use roomData for availability check
-      const overlappingBookings = await Booking.find({
-        roomId: roomId.toString(),
-        status: { $ne: "cancelled" },
-        $or: [
-          {
-            checkInDate: { $lt: endDate },
-            checkOutDate: { $gt: startDate },
-          },
-        ],
-      });
-
-      const totalBookedRooms = overlappingBookings.reduce((sum, booking) => {
-        return sum + parseInt(booking.NoofRoom || 0);
-      }, 0);
-
-      const availableRooms = roomData.numberOfRooms - totalBookedRooms;
-
-      return res.status(200).json({
-        success: true,
-        availableRooms,
-        totalRooms: roomData.numberOfRooms,
-        message:
-          availableRooms > 0
-            ? `${availableRooms} rooms available`
-            : "No rooms available for selected dates",
+    if (!roomData) {
+      return res.status(404).json({
+        success: false,
+        message: `Room not found with ID: ${roomId}`,
       });
     }
 
-    // Proceed with DB room data
-    const overlappingBookings = await Booking.find({
-      roomId: roomId.toString(),
-      status: { $ne: "cancelled" },
-      $or: [
-        {
-          checkInDate: { $lt: endDate },
-          checkOutDate: { $gt: startDate },
-        },
-      ],
+    // Get all bookings for this room
+    const bookings = await Booking.find({ roomId: roomData.id });
+
+    // Filter bookings that overlap with the requested dates and are not cancelled
+    const overlappingBookings = bookings.filter((booking) => {
+      const bookingStart = new Date(booking.checkInDate);
+      const bookingEnd = new Date(booking.checkOutDate);
+      const isNotCancelled = booking.status !== "cancelled";
+      const isOverlapping = bookingStart < endDate && bookingEnd > startDate;
+      return isNotCancelled && isOverlapping;
     });
 
+    // Calculate total rooms booked during the overlapping period
     const totalBookedRooms = overlappingBookings.reduce((sum, booking) => {
-      return sum + parseInt(booking.NoofRoom || 0);
+      return sum + parseInt(booking.NoofRoom || 0, 10);
     }, 0);
 
-    const availableRooms = room.numberOfRooms - totalBookedRooms;
+    const availableRooms = Math.max(
+      0,
+      roomData.numberOfRooms - totalBookedRooms
+    );
 
-    return res.status(200).json({
+    // Prepare response
+    const response = {
       success: true,
       availableRooms,
-      totalRooms: room.numberOfRooms,
+      totalRooms: roomData.numberOfRooms,
+      bookedRooms: totalBookedRooms,
+      roomType: roomData.name,
+      isAvailable: availableRooms > 0,
       message:
         availableRooms > 0
           ? `${availableRooms} rooms available`
           : "No rooms available for selected dates",
-    });
+    };
+
+    return res.status(200).json(response);
   } catch (error) {
     console.error("Error checking room availability:", error);
     res.status(500).json({

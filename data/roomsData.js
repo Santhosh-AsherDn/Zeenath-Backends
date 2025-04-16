@@ -13,10 +13,13 @@ export const rooms = [
     cancel: "Free cancellation 72 hours prior to check in",
 
     size: "200 square feet",
-    capacity: "2 adults + 1 child",
+    capacity: {
+      adults: 2,
+      children: 1,
+    },
     numberOfRooms: 11,
     extraPerson: "1 Adult or Child",
-    occupancy: "2 Adults",
+    occupancy: "2 Adults + 1 Child",
     amenities: [
       { icon: "../images/icon/amenities-img-1.png", label: "Free Wifi" },
       {
@@ -57,7 +60,10 @@ export const rooms = [
     cancel: "Free cancellation 72 hours prior to check in",
 
     size: "260 square feet",
-    capacity: "2 adults + 1 child",
+    capacity: {
+      adults: 2,
+      children: 1,
+    },
     numberOfRooms: 5,
     extraPerson: "1 Adult",
     occupancy: "2 Adults + 1 Child",
@@ -100,7 +106,10 @@ export const rooms = [
     extraBedRate: 600,
     cancel: "Free cancellation 72 hours prior to check in",
     size: "280 square feet",
-    capacity: "2 adults + 1 child",
+    capacity: {
+      adults: 2,
+      children: 1,
+    },
     numberOfRooms: 3,
     extraPerson: "1 Adult",
     occupancy: "2 Adults + 1 Child",
@@ -141,7 +150,10 @@ export const rooms = [
     cancel: "Free cancellation 72 hours prior to check in",
 
     size: "340 square feet",
-    capacity: "2 adults + 1 child",
+    capacity: {
+      adults: 4,
+      children: 1,
+    },
     numberOfRooms: 8,
     extraPerson: "1 Adult",
     occupancy: "2 Adults + 1 Child",
@@ -195,7 +207,10 @@ export const rooms = [
     cancel: "Free cancellation 72 hours prior to check in",
 
     size: "380 square feet",
-    capacity: "2 adults + 1 child",
+    capacity: {
+      adults: 4,
+      children: 1,
+    },
     numberOfRooms: 1,
     extraPerson: "1 Adult",
     occupancy: "4 Adults + 1 Child",
@@ -239,7 +254,10 @@ export const rooms = [
     cancel: "Free cancellation 72 hours prior to check in",
 
     size: "460 square feet",
-    capacity: "2 adults + 1 child",
+    capacity: {
+      adults: 2,
+      children: 1,
+    },
     numberOfRooms: 1,
     extraPerson: "1 Adult",
     occupancy: "4 Adults + 1 Child",
@@ -296,7 +314,10 @@ export const rooms = [
     cancel: "Free cancellation 72 hours prior to check in",
 
     size: "200 square feet",
-    capacity: "2 adults + 1 child",
+    capacity: {
+      adults: 2,
+      children: 1,
+    },
     numberOfRooms: 11,
     extraPerson: "1 Adult or Child",
     occupancy: "2 Adults",
@@ -327,3 +348,4 @@ export const rooms = [
     ],
   },
 ];
+export default rooms;

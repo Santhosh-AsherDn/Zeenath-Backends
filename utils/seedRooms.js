@@ -3,6 +3,9 @@ import Room from '../models/Room.js';
 import { rooms } from '../data/roomsData.js'; // Import your rooms data
 import { connectDB } from '../config/db.js';
 // import { image, path } from 'pdfkit';
+import dotenv from 'dotenv';
+
+dotenv.config();
 
 const seedRooms = async () => {
   try {
@@ -15,6 +18,7 @@ const seedRooms = async () => {
     const roomsToInsert = rooms.map(room => ({
       id: room.id, 
       name: room.name,
+      roomId: room.roomId,
       description: room.description,
       image: room.image,
       path: room.path,
