@@ -1,7 +1,7 @@
 import crypto from "crypto";
 import Booking from "../models/Booking.js";
 import { razorpayInstance } from "../config/razorpay.js";
-import { generateInvoice } from "../services/pdfService.js";
+// import { generateInvoice } from "../services/pdfService.js";
 import { sendInvoiceEmail } from "../services/emailService.js";
 
 export const createOrder = async (req, res) => {
@@ -57,23 +57,29 @@ export const createOrder = async (req, res) => {
       });
     }
 
-    const availabilityResponse = await fetch('http://localhost:5000/api/rooms/availability', {
-      method: 'POST',
-      headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        roomId: req.body.roomId,
-        checkInDate: req.body.checkInDate,
-        checkOutDate: req.body.checkOutDate
-      })
-    });
+    const availabilityResponse = await fetch(
+      "http://localhost:5000/api/rooms/availability",
+      {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          roomId: req.body.roomId,
+          checkInDate: req.body.checkInDate,
+          checkOutDate: req.body.checkOutDate,
+        }),
+      }
+    );
 
     const availabilityData = await availabilityResponse.json();
-    
-    if (!availabilityResponse.ok || availabilityData.availableRooms < req.body.NoofRoom) {
+
+    if (
+      !availabilityResponse.ok ||
+      availabilityData.availableRooms < req.body.NoofRoom
+    ) {
       return res.status(400).json({
         success: false,
-        message: availabilityData.message || 'Not enough rooms available',
-        availableRooms: availabilityData.availableRooms
+        message: availabilityData.message || "Not enough rooms available",
+        availableRooms: availabilityData.availableRooms,
       });
     }
 
@@ -86,7 +92,6 @@ export const createOrder = async (req, res) => {
     };
 
     const order = await razorpayInstance.orders.create(options);
-    
 
     // Create booking record
     const booking = new Booking({
@@ -185,31 +190,35 @@ export const verifyPayment = async (req, res) => {
       });
     }
 
-    // Generate invoice
-    let pdfBuffer;
-    try {
-      pdfBuffer = await generateInvoice(booking);
-    } catch (pdfError) {
-      console.error("PDF generation failed:", pdfError);
-      return res.status(500).json({
-        success: false,
-        message: "Booking confirmed but invoice generation failed",
-        bookingId: booking._id,
-      });
-    }
+    // // Generate invoice
+    // let pdfBuffer;
+    // try {
+    //   pdfBuffer = await generateInvoice(booking);
+    // } catch (pdfError) {
+    //   console.error("PDF generation failed:", pdfError);
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Booking confirmed but invoice generation failed",
+    //     bookingId: booking._id,
+    //   });
+    // }
 
-    // Send email with invoice
-    try {
-      await sendInvoiceEmail(booking, pdfBuffer);
-    } catch (emailError) {
-      console.error("Email sending failed:", emailError);
-      return res.status(500).json({
-        success: false,
-        message: "Booking confirmed but invoice email failed to send",
-        bookingId: booking._id,
-        downloadLink: `/api/bookings/${booking._id}/invoice`, // Provide a download link
-      });
-    }
+    // // Send email with invoice
+    // try {
+    //   await sendInvoiceEmail(booking, pdfBuffer);
+    // } catch (emailError) {
+    //   console.error("Email sending failed:", emailError);
+    //   return res.status(500).json({
+    //     success: false,
+    //     message: "Booking confirmed but invoice email failed to send",
+    //     bookingId: booking._id,
+    //     downloadLink: `/api/bookings/${booking._id}/invoice`, // Provide a download link
+    //   });
+    // }
+
+     // Get the populated booking data you need for the invoice
+     const bookingForInvoice = await Booking.findById(booking._id).lean();
+    
 
     // Success response
     res.status(200).json({
@@ -217,6 +226,9 @@ export const verifyPayment = async (req, res) => {
       message: "Payment verified successfully & invoice sent",
       bookingId: booking._id,
       paymentId: razorpay_payment_id,
+
+      triggerInvoice: true,  //trigger the invoice download in the fronend
+
     });
   } catch (err) {
     console.error("Payment verification error:", err);

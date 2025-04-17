@@ -6,11 +6,11 @@ export const checkRoomAvailability = async (req, res) => {
   try {
     const { roomId, checkInDate, checkOutDate } = req.body;
 
-    console.log("Received availability check:", {
-      roomId,
-      checkInDate,
-      checkOutDate,
-    });
+    // console.log("Received availability check:", {
+    //   roomId,
+    //   checkInDate,
+    //   checkOutDate,
+    // });
 
     if (!roomId || !checkInDate || !checkOutDate) {
       return res.status(400).json({
