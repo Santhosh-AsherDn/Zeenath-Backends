@@ -1,8 +1,6 @@
 import crypto from "crypto";
 import Booking from "../models/Booking.js";
 import { razorpayInstance } from "../config/razorpay.js";
-// import { generateInvoice } from "../services/pdfService.js";
-import { sendInvoiceEmail } from "../services/emailService.js";
 
 export const createOrder = async (req, res) => {
   try {
@@ -93,17 +91,8 @@ export const createOrder = async (req, res) => {
 
     const order = await razorpayInstance.orders.create(options);
 
-    // Create booking record
-    const booking = new Booking({
-      ...req.body,
-      razorpayOrderId: order.id,
-      status: "Pending",
-    });
-
-    await booking.save();
-
     // Prepare response
-    const response = {
+    res.json({
       success: true,
       orderId: order.id,
       paymentData: {
@@ -118,21 +107,15 @@ export const createOrder = async (req, res) => {
           email: req.body.email,
           contact: req.body.mobilenumber,
         },
-        theme: {
-          color: "#3399cc",
-        },
+        theme: { color: "#3399cc" },
       },
-      bookingId: booking._id,
-    };
-
-    res.json(response);
+    });
   } catch (err) {
     console.error("Error creating Razorpay order:", {
       message: err.message,
       stack: err.stack,
       errorDetails: err.response?.data,
     });
-
     res.status(500).json({
       success: false,
       message: "Failed to create Razorpay order",
@@ -147,15 +130,13 @@ export const createOrder = async (req, res) => {
 
 export const verifyPayment = async (req, res) => {
   try {
-    const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
-      req.body;
-
-    // if (!razorpay_payment_id || !razorpay_order_id || !razorpay_signature) {
-    //   return res.status(400).json({
-    //     success: false,
-    //     message: "Missing payment verification parameters",
-    //   });
-    // }
+    console.log("Received payment verification request:", req.body);
+    const {
+      razorpay_payment_id,
+      razorpay_order_id,
+      razorpay_signature,
+      bookingDetails,
+    } = req.body;
 
     // Verify signature
     const body = razorpay_order_id + "|" + razorpay_payment_id;
@@ -170,55 +151,20 @@ export const verifyPayment = async (req, res) => {
         message: "Invalid payment signature",
       });
     }
+    // Create booking record after successful payment verification
 
-    // Update booking status
-    const booking = await Booking.findOneAndUpdate(
-      { razorpayOrderId: razorpay_order_id },
-      {
-        status: "confirmed",
-        razorpayPaymentId: razorpay_payment_id,
-        razorpaySignature: razorpay_signature,
-        paymentDate: new Date(),
-      },
-      { new: true }
-    );
+    const bookingData = new Booking({
+      ...bookingDetails,
+      razorpayOrderId: razorpay_order_id,
+      razorpayPaymentId: razorpay_payment_id,
+      razorpaySignature: razorpay_signature,
+      paymentDate: new Date(),
+      status: "Confirmed", // directly confirmed after payment
+    });
 
-    if (!booking) {
-      return res.status(404).json({
-        success: false,
-        message: "Booking not found for this payment",
-      });
-    }
-
-    // // Generate invoice
-    // let pdfBuffer;
-    // try {
-    //   pdfBuffer = await generateInvoice(booking);
-    // } catch (pdfError) {
-    //   console.error("PDF generation failed:", pdfError);
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: "Booking confirmed but invoice generation failed",
-    //     bookingId: booking._id,
-    //   });
-    // }
-
-    // // Send email with invoice
-    // try {
-    //   await sendInvoiceEmail(booking, pdfBuffer);
-    // } catch (emailError) {
-    //   console.error("Email sending failed:", emailError);
-    //   return res.status(500).json({
-    //     success: false,
-    //     message: "Booking confirmed but invoice email failed to send",
-    //     bookingId: booking._id,
-    //     downloadLink: `/api/bookings/${booking._id}/invoice`, // Provide a download link
-    //   });
-    // }
-
-     // Get the populated booking data you need for the invoice
-     const bookingForInvoice = await Booking.findById(booking._id).lean();
-    
+    const booking = new Booking(bookingData);
+    await booking.save();
+    console.log("Booking saved successfully:", booking);
 
     // Success response
     res.status(200).json({
@@ -227,11 +173,14 @@ export const verifyPayment = async (req, res) => {
       bookingId: booking._id,
       paymentId: razorpay_payment_id,
 
-      triggerInvoice: true,  //trigger the invoice download in the fronend
-
+      triggerInvoice: true, //trigger the invoice download in the fronend
     });
   } catch (err) {
-    console.error("Payment verification error:", err);
+    console.error("Payment verification error:", {
+      message: err.message,
+      stack: err.stack,
+      errorDetails: err.errors, 
+    });
     res.status(500).json({
       success: false,
       message: "Payment verification failed",
@@ -239,6 +188,10 @@ export const verifyPayment = async (req, res) => {
         process.env.NODE_ENV === "development"
           ? err.message
           : "Internal server error",
+      ...(process.env.NODE_ENV === "development" && {
+        stack: err.stack,
+        validationErrors: err.errors,
+      }),
     });
   }
 };

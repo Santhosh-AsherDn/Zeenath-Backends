@@ -1,4 +1,6 @@
 import nodemailer from "nodemailer";
+import fs from "fs";
+import path from "path";
 
 export const sendInvoiceEmail = async (booking, pdfBuffer) => {
   if (!booking || !booking._id) {
@@ -8,6 +10,9 @@ export const sendInvoiceEmail = async (booking, pdfBuffer) => {
   if (!pdfBuffer) {
     throw new Error("Missing PDF buffer for invoice attachment");
   }
+
+  const logoPath = path.join(process.cwd(), "images", "zeenath-logo.png");
+  const logoBase64 = fs.readFileSync(logoPath, "base64");
 
   const transporter = nodemailer.createTransport({
     host: process.env.EMAIL_HOST,
@@ -50,9 +55,7 @@ export const sendInvoiceEmail = async (booking, pdfBuffer) => {
 
         <h3 style="color: #0066cc;">Booking Summary</h3>
         <ul>
-          <li><strong>Booking ID:</strong> ${booking._id
-            .toString()
-            .slice(-6)}</li>
+          <li><strong>Booking ID:</strong> ${booking._id.toString()}</li>
           <li><strong>Room:</strong> ${booking.roomName}</li>
            <li><strong>Check-in:</strong> ${checkInDate}</li>
           <li><strong>Check-out:</strong> ${checkOutDate}</li>
@@ -61,6 +64,8 @@ export const sendInvoiceEmail = async (booking, pdfBuffer) => {
 
          <p>Your invoice is attached to this email. We look forward to hosting you!</p>
         <p>Best regards,<br>The Zeenath Taj Garden Team</p>
+       <img src="data:image/png;base64,${logoBase64}" width="70" height="70" style="margin: 5px;" alt="Zeenath Taj Garden Logo" />
+
         <p style="font-size: 12px; color: #999;">This is an automated email. Do not reply.</p>
       </div>
     `,
