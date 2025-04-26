@@ -185,7 +185,7 @@ export const rooms = [
       },
     ],
     gallery: [
-      "/src/images/deluxe-chalet-room/dc-1.jpg",
+      "/images/deluxe-chalet-room/dc-1.jpg",
       "/images/deluxe-chalet-room/dc-2.jpg",
       "/images/deluxe-chalet-room/dc-3.jpg",
       "/images/deluxe-chalet-room/dc-4.jpg",

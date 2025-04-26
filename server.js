@@ -6,7 +6,7 @@ import bookingRoutes from "./routes/booking.routes.js";
 import paymentRoutes from "./routes/payment.routes.js";
 import roomAvailabilityRoutes from "./routes/roomAvailability.routes.js";
 import invoiceRoutes from "./routes/invoiceRoute.js";
-
+import weatherRoutes from "./routes/weatherRoutes.js";
 dotenv.config();
 
 const app = express();
@@ -20,6 +20,7 @@ app.use("/api/bookings", bookingRoutes);
 app.use("/api/payments", paymentRoutes);
 app.use("/api/rooms", roomAvailabilityRoutes);
 app.use("/api", invoiceRoutes);
+app.use("/api/weather", weatherRoutes);
 
 connectDB();
 
